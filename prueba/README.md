@@ -112,6 +112,23 @@ el catálogo guardado en MongoDB se queda como estaba.
 - **`Clock` inyectado**: permite probar la lógica de fechas con un reloj fijo.
 - **Inyección por constructor** en todas las clases nuevas y en las existentes que se tocaron.
 
+## Migración de PostgreSQL a MongoDB
+
+El proyecto ya no usa PostgreSQL: MongoDB es la única base de datos.
+
+| Antes (PostgreSQL / JPA) | Ahora (MongoDB) |
+|---|---|
+| Tabla `personas` (`entity/sf/Personas`) | Colección `personas` (`document/sf/Personas`) |
+| Tabla `gestopago_tokens` (`entity/gestopago/GestoPagoToken`) | Colección `gestopago_tokens` (`document/gestopago/GestoPagoToken`) |
+| `JpaRepository` | `MongoRepository` (mismos métodos de consulta) |
+| Llave `Integer` autoincremental | `_id` de tipo `String` (ObjectId de MongoDB) |
+| `@PrePersist` / `@PreUpdate` para las fechas | `@CreatedDate` / `@LastModifiedDate` con `@EnableMongoAuditing` (`MongoConfig`) |
+| Restricción `UNIQUE (id_distribuidor, codigo_dispositivo)` | `@CompoundIndex(unique = true)` + `spring.data.mongodb.auto-index-creation=true` |
+| `ConfigDB`, `FlywayConfig`, `V1__create_gestopago_tokens.sql` | Eliminados: Spring Boot configura MongoDB con `spring.data.mongodb.uri` |
+
+Dependencias eliminadas de `build.gradle`: `spring-boot-starter-data-jpa`, `postgresql`, `flyway-core`,
+`flyway-database-postgresql`, `hibernate-core`, `ojdbc8`, `ucp` y `h2`.
+
 ## Correcciones al proyecto existente
 
 - `build.gradle`: Lombok 1.18.26 → 1.18.44. La versión anterior falla al compilar con JDK 21 o
@@ -122,17 +139,15 @@ el catálogo guardado en MongoDB se queda como estaba.
 - `build.gradle`: se eliminó la dependencia de Lombok duplicada como `implementation`, se
   unificaron las versiones de `jjwt` (había 0.12.6 y 0.11.5 mezcladas), se corrigió el bloque
   `jacocoTestReport` y se fijó la codificación UTF-8 al compilar.
-- `ConfigDB`: las propiedades de Hibernate se armaban pero nunca se asignaban
-  (`setJpaPropertyMap`); `hibernate.show-sql` → `hibernate.show_sql`; `maxLifetime` de 18.8 s
-  (menor al mínimo de Hikari) → 30 min; se quitaron los `catch` que regresaban `null`.
 - `OpenApi`: le faltaba `@Configuration`, así que su `@Bean` nunca se registraba.
 - `PersonaController` y `PersonasServiceImpl`: inyección por constructor, se quitó un import de
   `java.awt` que no se usaba y se renombraron los métodos duplicados `actualizUser`.
 
 ## Cómo compilar y probar
 
-Requisitos: PostgreSQL y MongoDB corriendo. No hace falta instalar Java 17: Gradle lo descarga
-automáticamente la primera vez (toolchain). Solo se necesita internet en esa primera compilación.
+Requisitos: solo MongoDB corriendo en `localhost:27017`. No hace falta instalar Java 17: Gradle lo
+descarga automáticamente la primera vez (toolchain). Solo se necesita internet en esa primera compilación.
+Las colecciones (`personas`, `gestopago_tokens`, `gestopago_productos`) se crean solas.
 
 ```bash
 # Compilar

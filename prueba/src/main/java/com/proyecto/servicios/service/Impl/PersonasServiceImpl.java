@@ -1,6 +1,6 @@
 package com.proyecto.servicios.service.Impl;
 
-import com.proyecto.servicios.entity.sf.Personas;
+import com.proyecto.servicios.document.sf.Personas;
 import com.proyecto.servicios.model.EliminaPersonaRequest;
 import com.proyecto.servicios.model.GenericResponse;
 import com.proyecto.servicios.model.PersonaResponse;
