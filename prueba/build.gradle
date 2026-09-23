@@ -11,9 +11,21 @@ plugins {
 group 'com.proyecto.servicio.empresa'
 version '1.0'
 
-java{
-    sourceCompatibility=17
-    targetCompatibility=17
+java {
+    // Gradle compila, prueba y ejecuta con Java 17 sin importar con que JDK se abra el proyecto.
+    // Si no hay un JDK 17 instalado, lo descarga el plugin foojay (ver settings.gradle).
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+ext {
+    // 1.18.26 fallaba en JDK 21+ con "TypeTag :: UNKNOWN"; 1.18.44 soporta de JDK 8 a JDK 25
+    lombokVersion = '1.18.44'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 repositories {
@@ -28,6 +40,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -47,6 +60,8 @@ dependencies {
     //Seguridad
     //implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
     implementation 'com.auth0:jwks-rsa:0.22.1'
     implementation 'com.auth0:java-jwt:4.4.0'
     //Utilerias Apache Commons
@@ -67,23 +82,18 @@ dependencies {
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
     //Soporte adicional  herramientas de desarrollo
     implementation 'org.apache.opennlp:opennlp-tools:2.2.0'
-    implementation 'org.projectlombok:lombok:1.18.26'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    compileOnly 'org.projectlombok:lombok:1.18.26'
-    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
-    testCompileOnly 'org.projectlombok:lombok:1.18.26'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-inline:5.1.1'
     testImplementation 'com.h2database:h2:2.2.220'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-
 }
 
 configurations.all {
@@ -108,9 +118,7 @@ sonarqube {
 }
 jacocoTestReport {
     reports {
-        reports {
-            xml.required=true
-        }
+        xml.required = true
     }
 }
 

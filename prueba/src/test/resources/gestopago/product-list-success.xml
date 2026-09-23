@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<RESPONSE>
+    <MENSAJE>
+        <CODIGO>01</CODIGO>
+        <TEXTO>Operacion realizada con exito</TEXTO>
+    </MENSAJE>
+    <PRODUCTOS>
+        <producto servicio='ABIB' producto='ABIB 100' idServicio='2284' idProducto='14302' idCatTipoServicio='13' tipoFront='1' hasDigitoVerificador='false' precio='100.0' showAyuda='false' tipoReferencia='a'>
+            <legend>
+                <![CDATA[Recibe soporte las 24h del dia marcando desde tu telefono al *787. Conserva tu comprobante de pago.]]>
+            </legend>
+        </producto>
+        <producto servicio='Kaspersky Cloud Password Manager' producto='1 Usuario, 1 Ano' idServicio='3246' idProducto='19377' idCatTipoServicio='10' tipoFront='1' hasDigitoVerificador='false' precio='368.76' showAyuda='false' tipoReferencia='a'>
+            <legend>
+                <![CDATA[Descarga Kaspersky Internet Security, completa tu informacion e ingresa tu codigo de activacion.
+]]>
+            </legend>
+        </producto>
+        <producto servicio='Cinepolis' producto='Cinepolis Tradicional 2 boletos (Lun-Jue)' idServicio='151' idProducto='487' idCatTipoServicio='11' tipoFront='1' hasDigitoVerificador='false' precio='100.0' showAyuda='true' tipoReferencia='a'>
+            <legend>
+                <![CDATA[¡Gracias por tu compra!
+Selecciona “Agregar folios y promociones” e ingresa el codigo de tu folio.]]>
+            </legend>
+        </producto>
+    </PRODUCTOS>
+</RESPONSE>

@@ -1,0 +1,5 @@
+{
+    "success": false,
+    "token": "INVALID",
+    "message": "El header Authorization es obligatorio y no fue enviado"
+}
