@@ -1,7 +1,7 @@
 package com.proyecto.servicios.service.Impl;
 
 import com.proyecto.servicios.client.GestoPagoAuthClient;
-import com.proyecto.servicios.entity.gestopago.GestoPagoToken;
+import com.proyecto.servicios.document.gestopago.GestoPagoToken;
 import com.proyecto.servicios.mapper.GestoPagoTokenMapper;
 import com.proyecto.servicios.model.gestopago.GestoPagoAuthResponse;
 import com.proyecto.servicios.repositorys.gestopago.GestoPagoTokenRepository;

@@ -1,13 +1,13 @@
 package com.proyecto.servicios.repositorys.gestopago;
 
-import com.proyecto.servicios.entity.gestopago.GestoPagoToken;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.proyecto.servicios.document.gestopago.GestoPagoToken;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface GestoPagoTokenRepository extends JpaRepository<GestoPagoToken, Integer> {
+public interface GestoPagoTokenRepository extends MongoRepository<GestoPagoToken, String> {
 
     Optional<GestoPagoToken> findByIdDistribuidorAndCodigoDispositivo(Integer idDistribuidor, String codigoDispositivo);
 }

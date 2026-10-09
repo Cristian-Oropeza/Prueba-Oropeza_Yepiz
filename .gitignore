@@ -1,0 +1,8 @@
+Claude outputs/
+*.bak.gestopago
+*.disabled
+.idea/
+.gradle/
+build/
+*.iml
+*.log

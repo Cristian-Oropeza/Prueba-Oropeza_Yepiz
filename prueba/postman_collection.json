@@ -1,0 +1,310 @@
+{
+  "info": {
+    "name": "Onboarding Clientes - API",
+    "description": "Coleccion completa de la API de onboarding de clientes personas fisicas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "clienteId",
+      "value": "1"
+    },
+    {
+      "key": "numeroCuenta",
+      "value": "014180000000000001"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Alta cliente (feliz)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Juan\",\n  \"segundoNombre\": \"Carlos\",\n  \"apellidoPaterno\": \"Perez\",\n  \"apellidoMaterno\": \"Lopez\",\n  \"fechaNacimiento\": \"1995-04-12\",\n  \"curp\": \"PELJ950412HDFRPN00\",\n  \"rfc\": \"PELJ950412ABC\",\n  \"sexo\": \"MASCULINO\",\n  \"nacionalidad\": \"Mexicana\",\n  \"estadoCivil\": \"SOLTERO\",\n  \"correo\": \"juan.perez@example.com\",\n  \"telefonoMovil\": \"5512345678\",\n  \"telefonoAlterno\": null,\n  \"ocupacion\": \"Ingeniero\",\n  \"empresa\": \"Acme SA\",\n  \"ingresoMensual\": 25000.00,\n  \"password\": \"MiP@ssw0rd!\",\n  \"domicilio\": {\n    \"calle\": \"Av. Reforma\",\n    \"numeroExterior\": \"123\",\n    \"numeroInterior\": \"4B\",\n    \"colonia\": \"Juarez\",\n    \"municipio\": \"Cuauhtemoc\",\n    \"estado\": \"CDMX\",\n    \"codigoPostal\": \"06600\",\n    \"pais\": \"Mexico\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Alta cliente (CURP duplicada -> 409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Otro\",\n  \"apellidoPaterno\": \"Distinto\",\n  \"apellidoMaterno\": \"Persona\",\n  \"fechaNacimiento\": \"1990-01-01\",\n  \"curp\": \"PELJ950412HDFRPN00\",\n  \"rfc\": \"XXXX900101ABC\",\n  \"sexo\": \"MASCULINO\",\n  \"nacionalidad\": \"Mexicana\",\n  \"estadoCivil\": \"SOLTERO\",\n  \"correo\": \"otro@example.com\",\n  \"telefonoMovil\": \"5599999999\",\n  \"ocupacion\": \"Contador\",\n  \"empresa\": \"Y SA\",\n  \"ingresoMensual\": 10000,\n  \"password\": \"MiP@ssw0rd!\",\n  \"domicilio\": {\n    \"calle\": \"C 1\",\n    \"numeroExterior\": \"1\",\n    \"colonia\": \"Centro\",\n    \"municipio\": \"CDMX\",\n    \"estado\": \"CDMX\",\n    \"codigoPostal\": \"01000\",\n    \"pais\": \"Mexico\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Alta cliente (menor de edad -> 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Menor\",\n  \"apellidoPaterno\": \"De\",\n  \"apellidoMaterno\": \"Edad\",\n  \"fechaNacimiento\": \"2015-01-01\",\n  \"curp\": \"MEDX150101HDFXXX04\",\n  \"rfc\": \"MEDE150101ABC\",\n  \"sexo\": \"MASCULINO\",\n  \"nacionalidad\": \"Mexicana\",\n  \"estadoCivil\": \"SOLTERO\",\n  \"correo\": \"menor@example.com\",\n  \"telefonoMovil\": \"5511112222\",\n  \"ocupacion\": \"Estudiante\",\n  \"empresa\": \"Escuela\",\n  \"ingresoMensual\": 100,\n  \"password\": \"MiP@ssw0rd!\",\n  \"domicilio\": { \"calle\": \"C\", \"numeroExterior\": \"1\", \"colonia\": \"X\", \"municipio\": \"Y\", \"estado\": \"Z\", \"codigoPostal\": \"12345\", \"pais\": \"Mexico\" }\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"juan.perez@example.com\",\n  \"password\": \"MiP@ssw0rd!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const j = pm.response.json();",
+              "  pm.collectionVariables.set('jwt', j.token);",
+              "  pm.collectionVariables.set('clienteId', j.clienteId);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Consultar cliente por id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes/{{clienteId}}"
+      }
+    },
+    {
+      "name": "6. Buscar por CURP",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?curp=PELJ950412HDFRPN00"
+      }
+    },
+    {
+      "name": "7. Buscar por RFC",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?rfc=PELJ950412ABC"
+      }
+    },
+    {
+      "name": "8. Buscar por correo",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?correo=juan.perez@example.com"
+      }
+    },
+    {
+      "name": "9. Buscar por apellido paterno",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?apellidoPaterno=Perez&page=0&size=20"
+      }
+    },
+    {
+      "name": "10. Buscar por numero de cuenta",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?numeroCuenta={{numeroCuenta}}"
+      }
+    },
+    {
+      "name": "11. Listar clientes activos (paginado)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?activo=true&page=0&size=20&sort=fechaCreacion,desc"
+      }
+    },
+    {
+      "name": "12. Rango de fechas",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/clientes?fechaDesde=2026-01-01&fechaHasta=2026-12-31"
+      }
+    },
+    {
+      "name": "13. PATCH actualizar cliente",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes/{{clienteId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"telefonoMovil\": \"5599887766\",\n  \"empresa\": \"Nueva SA\",\n  \"ingresoMensual\": 30000.00,\n  \"domicilio\": { \"calle\": \"Nueva Calle\", \"numeroExterior\": \"456\", \"colonia\": \"Roma\", \"municipio\": \"Cuauhtemoc\", \"estado\": \"CDMX\", \"codigoPostal\": \"06700\", \"pais\": \"Mexico\" }\n}"
+        }
+      }
+    },
+    {
+      "name": "14. Baja logica de cliente",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/clientes/{{clienteId}}"
+      }
+    },
+    {
+      "name": "15. Consultar cuenta por numero",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/cuentas/{{numeroCuenta}}"
+      }
+    },
+    {
+      "name": "16. Consultar saldo de cuenta",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/cuentas/{{numeroCuenta}}/saldo"
+      }
+    },
+    {
+      "name": "17. Cuentas por cliente",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/cuentas?clienteId={{clienteId}}"
+      }
+    },
+    {
+      "name": "18. Cuentas activas",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/cuentas?estatus=ACTIVA&page=0&size=20"
+      }
+    },
+    {
+      "name": "19. Crear cuenta adicional",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/cuentas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clienteId\": {{clienteId}},\n  \"saldoInicial\": 500.00\n}"
+        }
+      }
+    },
+    {
+      "name": "20. PATCH cuenta (cambiar estatus)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/cuentas/{{numeroCuenta}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"estatus\": \"BLOQUEADA\" }"
+        }
+      }
+    },
+    {
+      "name": "21. Usuarios - filtro",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/usuarios/filtro?activo=true&page=0&size=20"
+      }
+    },
+    {
+      "name": "22. Usuarios - activar/desactivar",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/usuarios/agregar",
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"clienteId\": {{clienteId}}, \"activo\": false }"
+        }
+      }
+    },
+    {
+      "name": "23. Alta cliente (CURP con digito verificador mal -> 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombre\": \"Prueba\", \"apellidoPaterno\": \"Digito\", \"apellidoMaterno\": \"Malo\", \"fechaNacimiento\": \"1990-01-01\", \"curp\": \"PELJ950412HDFRPN09\", \"rfc\": \"PELJ950412XY2\", \"sexo\": \"MASCULINO\", \"nacionalidad\": \"Mexicana\", \"estadoCivil\": \"SOLTERO\", \"correo\": \"digito.mal@example.com\", \"telefonoMovil\": \"5544332211\", \"ocupacion\": \"QA\", \"empresa\": \"Pruebas SA\", \"ingresoMensual\": 15000, \"password\": \"MiP@ssw0rd!\", \"domicilio\": {\"calle\": \"C\", \"numeroExterior\": \"1\", \"colonia\": \"X\", \"municipio\": \"Y\", \"estado\": \"Z\", \"codigoPostal\": \"12345\", \"pais\": \"Mexico\"}}"
+        }
+      }
+    },
+    {
+      "name": "24. Alta cliente (sexo invalido -> 400 con valores permitidos)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/clientes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombre\": \"Prueba\", \"apellidoPaterno\": \"Enum\", \"apellidoMaterno\": \"Malo\", \"fechaNacimiento\": \"1990-01-01\", \"curp\": \"PELJ950412HDFRPN00\", \"rfc\": \"PELJ950412XY2\", \"sexo\": \"HOMBRE\", \"nacionalidad\": \"Mexicana\", \"estadoCivil\": \"SOLTERO\", \"correo\": \"enum.mal@example.com\", \"telefonoMovil\": \"5544332200\", \"ocupacion\": \"QA\", \"empresa\": \"Pruebas SA\", \"ingresoMensual\": 15000, \"password\": \"MiP@ssw0rd!\", \"domicilio\": {\"calle\": \"C\", \"numeroExterior\": \"1\", \"colonia\": \"X\", \"municipio\": \"Y\", \"estado\": \"Z\", \"codigoPostal\": \"12345\", \"pais\": \"Mexico\"}}"
+        }
+      }
+    }
+  ]
+}
