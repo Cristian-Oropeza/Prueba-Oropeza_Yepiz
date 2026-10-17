@@ -78,7 +78,7 @@ public class SecurityConfig {
     }
 
     private void escribirError(HttpServletResponse res, int status, String mensaje) throws java.io.IOException {
-        GenericResponse body = GenericResponse.of(status, mensaje);
+        GenericResponse body = GenericResponse.builder().codigo(status).mensaje(mensaje).build();
         res.setStatus(status);
         res.setContentType(MediaType.APPLICATION_JSON_VALUE);
         res.setCharacterEncoding("UTF-8");

@@ -35,7 +35,7 @@ public class GlobalErrorController implements ErrorController {
 
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(GenericResponse.of(status, mensaje));
+                .body(GenericResponse.builder().codigo(status).mensaje(mensaje).build());
     }
 
     private int resolveStatus(HttpServletRequest req) {
