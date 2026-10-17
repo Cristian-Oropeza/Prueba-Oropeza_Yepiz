@@ -1,9 +1,9 @@
 package com.proyecto.servicios.onboarding.service.impl;
 
+import com.proyecto.servicios.onboarding.dto.request.CuentaConsultaRequest;
 import com.proyecto.servicios.onboarding.dto.request.CuentaCreateRequest;
 import com.proyecto.servicios.onboarding.dto.request.CuentaUpdateRequest;
 import com.proyecto.servicios.onboarding.dto.response.CuentaResponse;
-import com.proyecto.servicios.onboarding.dto.response.CuentaSaldoResponse;
 import com.proyecto.servicios.onboarding.entity.Cliente;
 import com.proyecto.servicios.onboarding.entity.Cuenta;
 import com.proyecto.servicios.onboarding.entity.enums.EstatusCuenta;
@@ -13,14 +13,17 @@ import com.proyecto.servicios.onboarding.repository.ClienteRepository;
 import com.proyecto.servicios.onboarding.repository.CuentaRepository;
 import com.proyecto.servicios.onboarding.service.CuentaService;
 import com.proyecto.servicios.onboarding.service.NumeroCuentaGenerator;
+import com.proyecto.servicios.onboarding.service.PaginacionFactory;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,6 +34,7 @@ public class CuentaServiceImpl implements CuentaService {
     private final ClienteRepository clienteRepository;
     private final NumeroCuentaGenerator generator;
     private final ClienteMapper mapper;
+    private final PaginacionFactory paginacionFactory;
 
     @Value("${app.cuenta.saldo-inicial:0.00}")
     private BigDecimal saldoDefault;
@@ -40,9 +44,8 @@ public class CuentaServiceImpl implements CuentaService {
     public CuentaResponse crear(CuentaCreateRequest req) {
         Cliente cliente = clienteRepository.findById(req.clienteId())
                 .orElseThrow(() -> ClienteNoEncontradoException.porId(req.clienteId()));
-        if (!Boolean.TRUE.equals(cliente.getActivo())) {
+        if (!Boolean.TRUE.equals(cliente.getActivo()))
             throw ValidacionNegocioException.clienteInactivo();
-        }
         BigDecimal saldo = req.saldoInicial() != null ? req.saldoInicial() : saldoDefault;
         if (saldo.signum() < 0) throw ValidacionNegocioException.saldoInvalido();
 
@@ -55,44 +58,33 @@ public class CuentaServiceImpl implements CuentaService {
         return mapper.aCuentaResponse(cuentaRepository.save(ct));
     }
 
-    @Override @Transactional(readOnly = true)
-    public CuentaResponse obtenerPorNumero(String n) {
-        return mapper.aCuentaResponse(cuentaRepository.findByNumeroCuenta(n)
-                .orElseThrow(() -> CuentaNoEncontradaException.porNumero(n)));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public List<CuentaResponse> obtenerPorCliente(Long clienteId) {
-        if (!clienteRepository.existsById(clienteId))
-            throw ClienteNoEncontradoException.porId(clienteId);
-        return cuentaRepository.findByClienteId(clienteId).stream()
-                .map(mapper::aCuentaResponse).toList();
-    }
-
-    @Override @Transactional(readOnly = true)
-    public Page<CuentaResponse> buscarPorEstatus(EstatusCuenta estatus, Pageable p) {
-        return cuentaRepository.findByEstatus(estatus, p).map(mapper::aCuentaResponse);
-    }
-
-    @Override @Transactional(readOnly = true)
-    public CuentaSaldoResponse obtenerSaldo(String n) {
-        Cuenta ct = cuentaRepository.findByNumeroCuenta(n)
-                .orElseThrow(() -> CuentaNoEncontradaException.porNumero(n));
-        return new CuentaSaldoResponse(ct.getNumeroCuenta(), ct.getSaldo(), ct.getEstatus());
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CuentaResponse> consultar(CuentaConsultaRequest req) {
+        Specification<Cuenta> spec = (root, query, cb) -> {
+            List<Predicate> ps = new ArrayList<>();
+            if (req.getNumeroCuenta() != null && !req.getNumeroCuenta().isBlank())
+                ps.add(cb.equal(root.get("numeroCuenta"), req.getNumeroCuenta()));
+            if (req.getClienteId() != null)
+                ps.add(cb.equal(root.get("cliente").get("id"), req.getClienteId()));
+            if (req.getEstatus() != null)
+                ps.add(cb.equal(root.get("estatus"), req.getEstatus()));
+            return cb.and(ps.toArray(new Predicate[0]));
+        };
+        return cuentaRepository.findAll(spec, paginacionFactory.toPageable(req.getPaginacion()))
+                .map(mapper::aCuentaResponse);
     }
 
     @Override
     @Transactional
-    public CuentaResponse actualizarParcial(String n, CuentaUpdateRequest req) {
-        Cuenta ct = cuentaRepository.findByNumeroCuenta(n)
-                .orElseThrow(() -> CuentaNoEncontradaException.porNumero(n));
-        if (req.estatus() != null) {
-            // Regla: sólo clientes activos pueden tener cuentas ACTIVAS
-            if (req.estatus() == EstatusCuenta.ACTIVA && !Boolean.TRUE.equals(ct.getCliente().getActivo())) {
-                throw ValidacionNegocioException.clienteInactivo();
-            }
-            ct.setEstatus(req.estatus());
+    public CuentaResponse actualizarParcial(CuentaUpdateRequest req) {
+        Cuenta ct = cuentaRepository.findByNumeroCuenta(req.getNumeroCuenta())
+                .orElseThrow(() -> CuentaNoEncontradaException.porNumero(req.getNumeroCuenta()));
+        if (req.getEstatus() == EstatusCuenta.ACTIVA
+                && !Boolean.TRUE.equals(ct.getCliente().getActivo())) {
+            throw ValidacionNegocioException.clienteInactivo();
         }
+        ct.setEstatus(req.getEstatus());
         return mapper.aCuentaResponse(cuentaRepository.save(ct));
     }
 }

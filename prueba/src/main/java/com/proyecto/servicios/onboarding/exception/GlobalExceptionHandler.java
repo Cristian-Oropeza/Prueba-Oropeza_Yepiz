@@ -15,40 +15,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Handler global de excepciones. SIEMPRE devuelve un {@link GenericResponse}
- *   { "codigo": <http status>, "mensaje": "...", "detalles": [opcional] }
- *
- * Alcance: solo el modulo onboarding. El codigo legacy GestoPago tiene su
- * propio handler (si llega a activarse con gestopago.enabled=true).
+ * Manejo global y centralizado de excepciones. Los controllers NO llevan
+ * try-catch ni validaciones manuales; todo cae aquí y devolvemos siempre
+ * GenericResponse con mensajes claros y sin exponer detalles internos.
  */
 @RestControllerAdvice(basePackages = "com.proyecto.servicios.onboarding")
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // ========== Excepciones de negocio (CURP duplicada, cliente no encontrado, etc.) ==========
+    // ========== Excepciones de negocio ==========
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<GenericResponse> handleBusiness(BusinessException ex, HttpServletRequest req) {
         log.warn("Business: {} {} - {}", ex.getStatus(), ex.getCodigo(), ex.getMessage());
-        return respond(ex.getStatus(), ex.getMessage());
+        return build(ex.getStatus(), ex.getMessage(), null);
     }
 
-    // ========== Bean Validation en @RequestBody (@Valid) ==========
+    // ========== Validaciones @Valid en @RequestBody ==========
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<GenericResponse> handleValid(MethodArgumentNotValidException ex, HttpServletRequest req) {
-        // Aplanamos nombres: "domicilio.codigoPostal" -> "codigoPostal"
         List<String> detalles = ex.getBindingResult().getFieldErrors().stream()
-                .map(fe -> aplanarCampo(fe.getField()) + ": "
+                .map(fe -> aplanar(fe.getField()) + ": "
                         + (fe.getDefaultMessage() == null ? "invalido" : fe.getDefaultMessage()))
                 .distinct()
                 .collect(Collectors.toList());
-        return respond(HttpStatus.BAD_REQUEST, "Uno o mas campos son invalidos", detalles);
+        return build(HttpStatus.BAD_REQUEST, "Uno o mas campos son invalidos", detalles);
     }
 
-    // ========== Bean Validation en @RequestParam / @PathVariable ==========
+    // ========== Validaciones a nivel path/query (quedan por retrocompatibilidad) ==========
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<GenericResponse> handleConstraint(ConstraintViolationException ex, HttpServletRequest req) {
         List<String> detalles = ex.getConstraintViolations().stream()
@@ -59,10 +57,10 @@ public class GlobalExceptionHandler {
                 })
                 .distinct()
                 .collect(Collectors.toList());
-        return respond(HttpStatus.BAD_REQUEST, "Parametros invalidos", detalles);
+        return build(HttpStatus.BAD_REQUEST, "Parametros invalidos", detalles);
     }
 
-    // ========== JSON mal formado o enum invalido (sexo="HOMBRE", etc.) ==========
+    // ========== JSON mal formado / enum invalido ==========
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<GenericResponse> handleUnreadable(HttpMessageNotReadableException ex, HttpServletRequest req) {
         Throwable cause = ex.getCause();
@@ -77,17 +75,18 @@ public class GlobalExceptionHandler {
                 String permitidos = Arrays.stream(target.getEnumConstants())
                         .map(Object::toString)
                         .collect(Collectors.joining(", "));
-                String msg = campo + ": valor '" + valor + "' invalido. Valores permitidos: [" + permitidos + "]";
-                return respond(HttpStatus.BAD_REQUEST, "Valor de campo invalido", List.of(msg));
+                return build(HttpStatus.BAD_REQUEST, "Valor de campo invalido",
+                        List.of(campo + ": valor '" + valor + "' invalido. Valores permitidos: [" + permitidos + "]"));
             }
             String tipo = target == null ? "tipo esperado" : target.getSimpleName();
-            String msg = campo + ": no se pudo convertir '" + valor + "' al tipo " + tipo;
-            return respond(HttpStatus.BAD_REQUEST, "Valor de campo invalido", List.of(msg));
+            return build(HttpStatus.BAD_REQUEST, "Valor de campo invalido",
+                    List.of(campo + ": no se pudo convertir '" + valor + "' al tipo " + tipo));
         }
-        return respond(HttpStatus.BAD_REQUEST, "El cuerpo de la peticion es invalido o no se pudo parsear");
+        return build(HttpStatus.BAD_REQUEST,
+                "El cuerpo de la peticion es invalido o no se pudo parsear", null);
     }
 
-    // ========== Query/path params con tipo incorrecto (?clienteId=abc) ==========
+    // ========== Query/Path params con tipo incorrecto ==========
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<GenericResponse> handleMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         String tipo = ex.getRequiredType() == null ? "" : ex.getRequiredType().getSimpleName();
@@ -96,12 +95,12 @@ public class GlobalExceptionHandler {
         if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
             String permitidos = Arrays.stream(ex.getRequiredType().getEnumConstants())
                     .map(Object::toString).collect(Collectors.joining(", "));
-            msg = msg + ". Valores permitidos: [" + permitidos + "]";
+            msg += ". Valores permitidos: [" + permitidos + "]";
         }
-        return respond(HttpStatus.BAD_REQUEST, "Parametro invalido", List.of(msg));
+        return build(HttpStatus.BAD_REQUEST, "Parametro invalido", List.of(msg));
     }
 
-    // ========== Violaciones de integridad en BD (unique, check, fk) ==========
+    // ========== Violaciones de integridad en BD ==========
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<GenericResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {
         String raw = ex.getMostSpecificCause().getMessage();
@@ -109,39 +108,40 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.CONFLICT;
         String friendly = "Violacion de restricciones de integridad en base de datos";
 
-        if (lower.contains("uk_clientes_curp"))                 { friendly = "Ya existe un cliente con esa CURP"; }
-        else if (lower.contains("uk_clientes_rfc"))             { friendly = "Ya existe un cliente con ese RFC"; }
-        else if (lower.contains("uk_clientes_correo"))          { friendly = "Ya existe un cliente con ese correo"; }
-        else if (lower.contains("uk_usuarios_correo"))          { friendly = "Ya existe un usuario con ese correo"; }
-        else if (lower.contains("uk_cuentas_numero"))           { friendly = "Numero de cuenta duplicado"; }
-        else if (lower.contains("ck_clientes_curp_formato"))    { friendly = "CURP con formato invalido"; status = HttpStatus.BAD_REQUEST; }
-        else if (lower.contains("ck_clientes_rfc_formato"))     { friendly = "RFC con formato invalido";  status = HttpStatus.BAD_REQUEST; }
-        else if (lower.contains("ck_clientes_telefono"))        { friendly = "Telefono con formato invalido"; status = HttpStatus.BAD_REQUEST; }
-        else if (lower.contains("ck_cuentas_saldo_no_negativo")){ friendly = "El saldo no puede ser negativo"; status = HttpStatus.BAD_REQUEST; }
+        if (lower.contains("uk_clientes_curp"))                  friendly = "Ya existe un cliente con esa CURP";
+        else if (lower.contains("uk_clientes_rfc"))              friendly = "Ya existe un cliente con ese RFC";
+        else if (lower.contains("uk_clientes_correo"))           friendly = "Ya existe un cliente con ese correo";
+        else if (lower.contains("uk_usuarios_correo"))           friendly = "Ya existe un usuario con ese correo";
+        else if (lower.contains("uk_cuentas_numero"))            friendly = "Numero de cuenta duplicado";
+        else if (lower.contains("ck_clientes_curp_formato"))     { friendly = "CURP con formato invalido"; status = HttpStatus.BAD_REQUEST; }
+        else if (lower.contains("ck_clientes_rfc_formato"))      { friendly = "RFC con formato invalido";  status = HttpStatus.BAD_REQUEST; }
+        else if (lower.contains("ck_clientes_telefono"))         { friendly = "Telefono con formato invalido"; status = HttpStatus.BAD_REQUEST; }
+        else if (lower.contains("ck_cuentas_saldo_no_negativo")) { friendly = "El saldo no puede ser negativo"; status = HttpStatus.BAD_REQUEST; }
 
         log.warn("Integrity: {} - {}", status, raw);
-        return respond(status, friendly);
+        return build(status, friendly, null);
     }
 
-    // ========== Catch-all ==========
+    // ========== Catch-all (nunca exponemos traza al cliente) ==========
     @ExceptionHandler(Exception.class)
     public ResponseEntity<GenericResponse> handleAny(Exception ex, HttpServletRequest req) {
         log.error("Error no controlado en {}: {}", req.getRequestURI(), ex.getMessage(), ex);
-        return respond(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrio un error inesperado");
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrio un error inesperado", null);
     }
 
-    // ========== Helpers ==========
-    private String aplanarCampo(String field) {
+    // ========== Helpers (un solo build, sin sobrecarga) ==========
+    private String aplanar(String field) {
         if (field == null) return "campo";
         int lastDot = field.lastIndexOf('.');
         return lastDot < 0 ? field : field.substring(lastDot + 1);
     }
 
-    private ResponseEntity<GenericResponse> respond(HttpStatus status, String mensaje) {
-        return ResponseEntity.status(status).body(GenericResponse.of(status.value(), mensaje));
-    }
-
-    private ResponseEntity<GenericResponse> respond(HttpStatus status, String mensaje, List<String> detalles) {
-        return ResponseEntity.status(status).body(GenericResponse.of(status.value(), mensaje, detalles));
+    private ResponseEntity<GenericResponse> build(HttpStatus status, String mensaje, List<String> detalles) {
+        GenericResponse body = GenericResponse.builder()
+                .codigo(status.value())
+                .mensaje(mensaje)
+                .detalles(detalles == null ? Collections.emptyList() : detalles)
+                .build();
+        return ResponseEntity.status(status).body(body);
     }
 }

@@ -4,49 +4,70 @@ import com.proyecto.servicios.onboarding.entity.enums.EstadoCivil;
 import com.proyecto.servicios.onboarding.entity.enums.Sexo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 /**
- * PATCH parcial: todos los campos opcionales. CURP, RFC y numero_cuenta son inmutables (se ignoran).
+ * PATCH-style: todos los campos opcionales excepto el id. CURP, RFC y
+ * numero_cuenta son INMUTABLES (ignorados aunque se envien).
  */
-public record ClienteUpdateRequest(
+@Getter @Setter @NoArgsConstructor
+public class ClienteUpdateRequest {
 
-        @Size(min = 2, max = 50)
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$")
-        String nombre,
+    @NotNull(message = "El id del cliente es obligatorio")
+    @Positive(message = "El id debe ser positivo")
+    private Long id;
 
-        @Size(max = 50)
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]*$")
-        String segundoNombre,
+    @Size(min = 2, max = 50)
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$",
+            message = "El nombre solo puede contener letras y espacios")
+    private String nombre;
 
-        @Size(min = 2, max = 50)
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$")
-        String apellidoPaterno,
+    @Size(max = 50)
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]*$",
+            message = "El segundo nombre solo puede contener letras y espacios")
+    private String segundoNombre;
 
-        @Size(min = 2, max = 50)
-        @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$")
-        String apellidoMaterno,
+    @Size(min = 2, max = 50)
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$",
+            message = "El apellido paterno solo puede contener letras y espacios")
+    private String apellidoPaterno;
 
-        Sexo sexo,
-        @Size(min = 2, max = 60) String nacionalidad,
-        EstadoCivil estadoCivil,
+    @Size(min = 2, max = 50)
+    @Pattern(regexp = "^[A-Za-zÁÉÍÓÚÑáéíóúñ ]+$",
+            message = "El apellido materno solo puede contener letras y espacios")
+    private String apellidoMaterno;
 
-        @Email @Size(max = 100) String correo,
+    private Sexo sexo;
 
-        @Pattern(regexp = "^\\d{10}$", message = "El telefono movil debe tener 10 digitos")
-        String telefonoMovil,
+    @Size(min = 2, max = 60)
+    private String nacionalidad;
 
-        @Pattern(regexp = "^\\d{10}$", message = "El telefono alterno debe tener 10 digitos")
-        String telefonoAlterno,
+    private EstadoCivil estadoCivil;
 
-        @Size(min = 2, max = 80)  String ocupacion,
-        @Size(min = 2, max = 100) String empresa,
+    @Email(message = "El correo no tiene formato valido")
+    @Size(max = 100)
+    private String correo;
 
-        @DecimalMin(value = "0.01", message = "El ingreso mensual debe ser mayor a cero")
-        @Digits(integer = 10, fraction = 2)
-        BigDecimal ingresoMensual,
+    @Pattern(regexp = "^\\d{10}$", message = "El telefono movil debe tener 10 digitos")
+    private String telefonoMovil;
 
-        @Valid DomicilioRequest domicilio
+    @Pattern(regexp = "^\\d{10}$", message = "El telefono alterno debe tener 10 digitos")
+    private String telefonoAlterno;
 
-) {}
+    @Size(min = 2, max = 80)
+    private String ocupacion;
+
+    @Size(min = 2, max = 100)
+    private String empresa;
+
+    @DecimalMin(value = "0.01", message = "El ingreso mensual debe ser mayor a cero")
+    @Digits(integer = 10, fraction = 2)
+    private BigDecimal ingresoMensual;
+
+    @Valid
+    private DomicilioRequest domicilio;
+}
