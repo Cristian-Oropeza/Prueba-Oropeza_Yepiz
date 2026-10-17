@@ -1,6 +1,7 @@
 package com.proyecto.servicios.onboarding.exception;
 
 import com.proyecto.servicios.onboarding.dto.response.GenericResponse;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -12,17 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller global de errores del container (Tomcat).
+ * Controller global de errores del container. Spring lo invoca internamente
+ * cuando algo falla fuera del alcance de los @ExceptionHandler:
+ *   - 404 ruta inexistente
+ *   - 400 header/URL muy grande rechazado por Tomcat
+ *   - 405 metodo HTTP no soportado
+ *   - 500 excepcion que escapo al GlobalExceptionHandler
  *
- * Captura CUALQUIER error que llegue a Spring por la ruta /error:
- *  - 404 cuando no hay handler (p. ej. ruta inexistente /foo/bar)
- *  - 400 cuando Tomcat rechaza por "Request header too large", URL mal formada, etc.
- *  - 500 cuando una excepcion no fue atrapada por el GlobalExceptionHandler
- *
- * Devuelve siempre JSON con el contrato uniforme {@link GenericResponse},
- * nunca el HTML blanco de Tomcat.
+ * Devuelve siempre JSON uniforme con GenericResponse (nunca HTML).
+ * No se expone en Swagger porque es infraestructura, no API publica.
  */
 @RestController
+@Hidden
 @Slf4j
 public class GlobalErrorController implements ErrorController {
 
