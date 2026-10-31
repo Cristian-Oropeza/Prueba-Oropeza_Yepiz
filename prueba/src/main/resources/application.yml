@@ -7,40 +7,17 @@ spring:
     default-property-inclusion: non_null
     serialization:
       write-dates-as-timestamps: false
-
-# ----------- GestoPago legacy: apagado por default -----------
-gestopago:
-  enabled: ${GESTOPAGO_ENABLED:false}
-  auth:
-    url: https://gestopago.portalventas.net
-    id-distribuidor: 83
-    codigo-dispositivo: GPS83-TPV-17
-    password: "12345678"
-    refresh-rate-ms: 3600000
-  product:
-    url: https://gestopago.portalventas.net
-    token: ${GESTOPAGO_PRODUCT_TOKEN:}
-    sync-cron: "0 0 6 * * *"
-    sync-zone: America/Mexico_City
-
-# Feign timeouts (solo se usan si gestopago.enabled=true)
-spring.cloud:
-  openfeign:
-    client:
-      config:
-        gestoPagoProduct:
-          connect-timeout: 5000
-          read-timeout: 15000
-  config:
-    enabled: false
-    import-check:
+  cloud:
+    config:
       enabled: false
+      import-check:
+        enabled: false
 
 # ----------- Onboarding: JWT (opcional por ahora) -----------
 app:
   security:
     jwt:
-      enabled: ${JWT_ENABLED:false}          # false = todos los endpoints abiertos
+      enabled: ${JWT_ENABLED:false}
       secret: ${JWT_SECRET:password-completamente-segura-1-2-3-4-5-cambiar-en-prod-pls-okey-si-si-1234567890}
       expiration-ms: ${JWT_EXPIRATION_MS:3600000}
       issuer: onboarding-clientes
@@ -59,7 +36,7 @@ springdoc:
 
 server:
   port: ${PORT:8081}
-  max-http-request-header-size: 16KB     # Buffer para URL + headers (default 8KB)
+  max-http-request-header-size: 16KB
   tomcat:
     threads:
       max: 200
@@ -73,7 +50,7 @@ server:
   error:
     whitelabel:
       enabled: false
-    include-message: always   # Expone message en /error para armar la GenericResponse
+    include-message: always
 
 management:
   endpoints:

@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    // ==== Onboarding: Web + Validacion + JPA + Security ====
+    // ==== Onboarding: Web + Validacion + JPA + Security + Actuator ====
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -42,7 +42,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
-    // JWT (queda listo aunque de momento va opcional)
+    // JWT (opcional, controlado por flag)
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly    'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly    'io.jsonwebtoken:jjwt-jackson:0.12.6'
@@ -53,27 +53,6 @@ dependencies {
     // Utilerias
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.mapstruct:mapstruct:1.6.3'
-
-    // ==== Legacy GestoPago (solo si gestopago.enabled=true) ====
-    implementation 'org.springframework.cloud:spring-cloud-config-client:4.1.4'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.4'
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
-    implementation 'io.lettuce:lettuce-core:6.5.1.RELEASE'
-    implementation 'com.auth0:jwks-rsa:0.22.1'
-    implementation 'com.auth0:java-jwt:4.4.0'
-    implementation 'commons-fileupload:commons-fileupload:1.5'
-    implementation 'commons-io:commons-io:2.18.0'
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'org.json:json:20231013'
-    implementation 'com.google.api-client:google-api-client:2.7.1'
-    implementation 'com.google.api-client:google-api-client-jackson2:2.7.1'
-    implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
-    implementation 'org.apache.opennlp:opennlp-tools:2.2.0'
 
     // Dev / Lombok / MapStruct
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -107,9 +86,10 @@ springBoot {
 
 sonarqube {
     properties {
-        property "sonar.exclusions", "**/App.java,**/model/**,**/document/**,**/enums/**,**/config/**,**/controller/**,**/service/configuracion/**"
+        property "sonar.exclusions", "**/App.java,**/dto/**,**/entity/**,**/config/**"
     }
 }
+
 jacocoTestReport {
     reports {
         xml.required = true
