@@ -19,4 +19,9 @@ public record ResultadoTx(AutorizacionXml autorizacion, String detalle, Tipo tip
     public boolean tieneRespuesta() { return tipo == Tipo.RESPUESTA; }
     public boolean fueEnviada()     { return tipo != Tipo.NO_ENVIADA; }
     public boolean esAprobada()     { return tieneRespuesta() && autorizacion.esAprobada(); }
+
+    /** Codigo "82" = sin certeza del proveedor; tratar como DESCONOCIDO (dejar EN_CONFIRMACION). */
+    public boolean esCodigoDesconocido() {
+        return tieneRespuesta() && "82".equals(autorizacion.codigo());
+    }
 }

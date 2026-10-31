@@ -48,7 +48,7 @@ public class CatalogoProducto {
     @Column(name = "monto_max", nullable = false, precision = 15, scale = 2)
     private BigDecimal montoMax;
 
-    @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
+    @Column(nullable = false, length = 3)
     @Builder.Default
     private String moneda = "MXN";
 

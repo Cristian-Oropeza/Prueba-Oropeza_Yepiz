@@ -26,6 +26,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+# ----------- GestoPago: overrides para perfil dev -----------
+# Credenciales PUBLICAS de prueba del distribuidor 83 de PuntoRed (documentacion oficial).
+# No son secretas; en produccion se usan OTRAS que SI vienen por env vars (ver application-prod.yml).
+gestopago:
+  enabled: true
+  auth:
+    password: 12345678
+  cifrado:
+    llave: HPo7OLqB4Fkk4E2yGOtwqw8H5fHR9kNx67OR4g4UdlA=
+    iv: p5ldmBPdd/9pjC0bDC/nSg==
+
 logging:
   level:
     com.proyecto.servicios.onboarding: DEBUG

@@ -125,21 +125,21 @@ public class TransaccionTxOperations {
         }
 
         var xml = resultado.autorizacion();
-        t.setCodigoProveedor(xml.getCodigoMensaje());
-        t.setTextoProveedor(sanitizar(xml.getMensaje()));
-        t.setIdTxProveedor(xml.getIdTransaccion());
-        t.setNumAutorizacion(xml.getNumAutorizacion());
+        t.setCodigoProveedor(xml.codigo());
+        t.setTextoProveedor(sanitizar(xml.texto()));
+        t.setIdTxProveedor(xml.idTransaccion());
+        t.setNumAutorizacion(xml.numAutorizacionLong());
         t.setFechaConfirmacion(OffsetDateTime.now());
 
         if (xml.esAprobada()) {
             t.setEstado(EstadoTransaccion.APLICADA);
-            log.info("Tx id={} APLICADA numAut={}", txId, xml.getNumAutorizacion());
+            log.info("Tx id={} APLICADA numAut={}", txId, xml.numAutorizacionLong());
             return transaccionRepository.save(t);
         }
         // Rechazo explicito (NUM_AUTORIZACION = -1 o nulo): devolver saldo.
-        devolverSaldo(t, "Rechazo codigo=" + xml.getCodigoMensaje());
+        devolverSaldo(t, "Rechazo codigo=" + xml.codigo());
         t.setEstado(EstadoTransaccion.RECHAZADA);
-        log.info("Tx id={} RECHAZADA codigo={} - saldo devuelto", txId, xml.getCodigoMensaje());
+        log.info("Tx id={} RECHAZADA codigo={} - saldo devuelto", txId, xml.codigo());
         return transaccionRepository.save(t);
     }
 
@@ -170,17 +170,17 @@ public class TransaccionTxOperations {
             return transaccionRepository.save(t);
         }
         var xml = resultado.autorizacion();
-        t.setCodigoProveedor(xml.getCodigoMensaje());
-        t.setTextoProveedor(sanitizar(xml.getMensaje()));
-        t.setIdTxProveedor(xml.getIdTransaccion());
-        t.setNumAutorizacion(xml.getNumAutorizacion());
+        t.setCodigoProveedor(xml.codigo());
+        t.setTextoProveedor(sanitizar(xml.texto()));
+        t.setIdTxProveedor(xml.idTransaccion());
+        t.setNumAutorizacion(xml.numAutorizacionLong());
         t.setFechaConfirmacion(OffsetDateTime.now());
         if (xml.esAprobada()) {
             t.setEstado(EstadoTransaccion.APLICADA);
             log.info("Conciliacion tx id={} CONFIRMA APLICADA", txId);
             return transaccionRepository.save(t);
         }
-        devolverSaldo(t, "Conciliacion rechaza codigo=" + xml.getCodigoMensaje());
+        devolverSaldo(t, "Conciliacion rechaza codigo=" + xml.codigo());
         t.setEstado(EstadoTransaccion.RECHAZADA);
         log.info("Conciliacion tx id={} CONFIRMA RECHAZADA - saldo devuelto", txId);
         return transaccionRepository.save(t);

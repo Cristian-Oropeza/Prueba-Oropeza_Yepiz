@@ -66,7 +66,7 @@ public class Transaccion {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal monto;
 
-    @Column(nullable = false, length = 3, columnDefinition = "CHAR(3)")
+    @Column(nullable = false, length = 3)
     @Builder.Default
     private String moneda = "MXN";
 

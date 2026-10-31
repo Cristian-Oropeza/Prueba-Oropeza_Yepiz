@@ -162,7 +162,7 @@ public class GestopagoTxGateway {
             AutorizacionXml xml = (AutorizacionXml) jaxbContext.createUnmarshaller()
                     .unmarshal(new StringReader(xmlBody));
             log.info("GestoPago {} respondio codigo={} numAut={}",
-                    path, xml.getCodigoMensaje(), xml.getNumAutorizacion());
+                    path, xml.codigo(), xml.numAutorizacionLong());
             return ResultadoTx.respuesta(xml);
         } catch (JAXBException ex) {
             log.error("No se pudo parsear XML de GestoPago {}: {}", path, ex.getMessage());
