@@ -40,6 +40,17 @@ public class Cuenta {
     @Builder.Default
     private EstatusCuenta estatus = EstatusCuenta.ACTIVA;
 
+    /**
+     * Columna de bloqueo optimista (JPA @Version). Impide que dos operaciones concurrentes sobre
+     * la misma cuenta corrompan el saldo: Hibernate detecta el conflicto al hacer flush y lanza
+     * ObjectOptimisticLockingFailureException, que el service de pagos atrapa y reintenta.
+     * La columna fue agregada en V2__transacciones.sql con DEFAULT 0 para las cuentas existentes.
+     */
+    @Version
+    @Column(nullable = false)
+    @Builder.Default
+    private Long version = 0L;
+
     @CreationTimestamp
     @Column(name = "fecha_apertura", nullable = false, updatable = false)
     private OffsetDateTime fechaApertura;

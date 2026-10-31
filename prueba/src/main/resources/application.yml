@@ -13,7 +13,7 @@ spring:
       import-check:
         enabled: false
 
-# ----------- Onboarding: JWT (opcional por ahora) -----------
+# ----------- Onboarding: JWT (opcional) -----------
 app:
   security:
     jwt:
@@ -24,6 +24,39 @@ app:
   cuenta:
     saldo-inicial: ${CUENTA_SALDO_INICIAL:0.00}
     prefijo-clabe: ${CUENTA_PREFIJO_CLABE:014180}
+
+# ----------- GestoPago (modulo de transacciones) ------------
+# Para activar: GESTOPAGO_ENABLED=true + credenciales (ver .env.example).
+# Las credenciales del distribuidor 83 son PUBLICAS de la documentacion de PuntoRed.
+# Las llaves AES (SECRET_KEY e IV) se las entrega PuntoRed; sin ellas no se envia nada.
+gestopago:
+  enabled: ${GESTOPAGO_ENABLED:false}
+  api-key: ${GESTOPAGO_API_KEY:}
+  auth:
+    url: ${GESTOPAGO_AUTH_URL:https://gestopago.portalventas.net}
+    id-distribuidor: ${GESTOPAGO_ID_DISTRIBUIDOR:83}
+    codigo-dispositivo: ${GESTOPAGO_CODIGO_DISPOSITIVO:GPS83-TPV-17}
+    password: ${GESTOPAGO_AUTH_PASSWORD:}
+    refresh-rate: ${GESTOPAGO_AUTH_REFRESH:1h}
+    vigencia: ${GESTOPAGO_AUTH_VIGENCIA:23h}
+  tx:
+    url: ${GESTOPAGO_TX_URL:https://gestopago.portalventas.net}
+    unidad: ${GESTOPAGO_TX_UNIDAD:083}
+    zona-horaria: ${GESTOPAGO_TX_ZONA:America/Mexico_City}
+    connect-timeout: ${GESTOPAGO_CONNECT_TIMEOUT:10s}
+    read-timeout: ${GESTOPAGO_READ_TIMEOUT:70s}
+    monto-maximo: ${GESTOPAGO_MONTO_MAXIMO:5000.00}
+    tope-diario: ${GESTOPAGO_TOPE_DIARIO:20000.00}
+    ventana-antiduplicado-seg: ${GESTOPAGO_VENTANA_ANTIDUP:30}
+    confirmacion-intervalo: ${GESTOPAGO_CONF_INTERVALO:60s}
+    min-segundos-antes-de-conciliar: ${GESTOPAGO_MIN_SEG_CONCILIAR:62}
+    max-horas-conciliar: ${GESTOPAGO_MAX_HORAS_CONCILIAR:24}
+    max-intentos: ${GESTOPAGO_MAX_INTENTOS:60}
+    tamano-lote: ${GESTOPAGO_TAMANO_LOTE:20}
+    conciliacion-enabled: ${GESTOPAGO_CONCILIACION_ENABLED:false}
+  cifrado:
+    llave: ${GESTOPAGO_CIFRADO_LLAVE:}
+    iv: ${GESTOPAGO_CIFRADO_IV:}
 
 # ----------- OpenAPI -----------
 springdoc:

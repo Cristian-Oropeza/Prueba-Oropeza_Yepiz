@@ -1,10 +1,11 @@
 spring:
   datasource:
-    # Railway inyecta DATABASE_URL con formato postgresql://user:pass@host:port/db
-    # Aqui usamos las 3 vars explicitas que Railway tambien expone.
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}}
-    username: ${SPRING_DATASOURCE_USERNAME:${PGUSER}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${PGPASSWORD}}
+    # Render: en el panel del servicio Docker, agrega las variables SPRING_DATASOURCE_URL,
+    # SPRING_DATASOURCE_USERNAME y SPRING_DATASOURCE_PASSWORD apuntando al PostgreSQL managed.
+    # Formato: jdbc:postgresql://<host>/<db>?sslmode=require
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 30
